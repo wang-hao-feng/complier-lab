@@ -3,7 +3,7 @@
     #include <stdlib.h>
     #include <string.h>
     #include <stdarg.h>
-    #include "function.c"
+    #include "NodeStruct.c"
     #include "lex.yy.c"
 
     #define MAX_STACK_SIZE 1024

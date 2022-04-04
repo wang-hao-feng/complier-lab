@@ -1,3 +1,6 @@
+#ifndef _ERROR_H_
+#define _ERROR_H_
+
 #define UNDIFINED_VARIABLE 1
 #define UNDIFINED_FUNCTION 2
 #define REDEFINED_VARIABLE 3
@@ -12,8 +15,12 @@
 #define NOT_INTEGER_INDEX 12
 #define NOT_STRUCT 13
 #define NOT_EXIST_FILED 14
-#define REDIFINED_FILED 15
-#define DUPLICATE_FIELD 16
+#define REDIFINED_OR_INIT_FILED 15
+#define REDEFINED_STRUCT 16
 #define UNDEFINED_STRUCT 17
 #define UNDEFINED_FUNCTION_STATEMENT 18
 #define CONFLICT_FUNCTION_DEFINATION 19
+
+void PrintErrorMsg(int error_type, int line, int n, ...);
+
+#endif

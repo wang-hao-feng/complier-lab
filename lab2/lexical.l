@@ -11,6 +11,7 @@
 
     unsigned int atocmmi(const char *nptr);
     void update();
+    struct Node *NewTerminalNode(char *text, const char *type);
 %}
 
 digit [0-9]
@@ -25,16 +26,16 @@ id {letter}({letter}|{digit})*
 
 %%
 
-"int"|"float" { return TYPE; }
-"struct" { return STRUCT; }
-"return" { return RETURN; }
-"if" { return IF; }
-"else" { return ELSE; }
-"while" { return WHILE; }
+"int"|"float" { yylval.type_node = NewTerminalNode(yytext, "TYPE"); return TYPE; }
+"struct" { yylval.type_node = NewTerminalNode(yytext, "STRUCT"); return STRUCT; }
+"return" { yylval.type_node = NewTerminalNode(yytext, "RETURN"); return RETURN; }
+"if" { yylval.type_node = NewTerminalNode(yytext, "IF"); return IF; }
+"else" { yylval.type_node = NewTerminalNode(yytext, "ELSE"); return ELSE; }
+"while" { yylval.type_node = NewTerminalNode(yytext, "WHILE"); return WHILE; }
 
-{int} { return INT; }
-{float} { return FLOAT; }
-{id} { return ID; }
+{int} { yylval.type_node = NewTerminalNode(yytext, "INT"); return INT; }
+{float} { yylval.type_node = NewTerminalNode(yytext, "FLOAT"); return FLOAT; }
+{id} { yylval.type_node = NewTerminalNode(yytext, "ID"); return ID; }
 
 0({letter}|{digit})+ {
     lexical_error = 1;
@@ -57,28 +58,28 @@ id {letter}({letter}|{digit})*
     return ID;
 }
 
-";" { return SEMI; }
-"," { return COMMA; }
-"=" { return ASSIGNOP; }
-">"|"<"|">="|"<="|"=="|"!=" { return RELOP; }
+";" { yylval.type_node = NewTerminalNode(yytext, "SEMI"); return SEMI; }
+"," { yylval.type_node = NewTerminalNode(yytext, "COMMA"); return COMMA; }
+"=" { yylval.type_node = NewTerminalNode(yytext, "ASSIGNOP"); return ASSIGNOP; }
+">"|"<"|">="|"<="|"=="|"!=" { yylval.type_node = NewTerminalNode(yytext, "RELOP"); return RELOP; }
 
-"+" { return PLUS; }
-"-" { yreturn MINUS; }
-"*" { return STAR; }
-"/" { return DIV; }
+"+" { yylval.type_node = NewTerminalNode(yytext, "PLUS"); return PLUS; }
+"-" { yylval.type_node = NewTerminalNode(yytext, "MINUS"); return MINUS; }
+"*" { yylval.type_node = NewTerminalNode(yytext, "STAR"); return STAR; }
+"/" { yylval.type_node = NewTerminalNode(yytext, "DIV"); return DIV; }
 
-"&&" { return AND; }
-"||" { return OR; }
-"!" { return NOT; }
+"&&" { yylval.type_node = NewTerminalNode(yytext, "AND"); return AND; }
+"||" { yylval.type_node = NewTerminalNode(yytext, "OR"); return OR; }
+"!" { yylval.type_node = NewTerminalNode(yytext, "NOT"); return NOT; }
 
-"." { return DOT; }
+"." { yylval.type_node = NewTerminalNode(yytext, "DOT"); return DOT; }
 
-"(" { return LP; }
-")" { return RP; }
-"[" { return LB; }
-"]" { return RB; }
-"{" { return LC; }
-"}" { return RC; }
+"(" { yylval.type_node = NewTerminalNode(yytext, "LP"); return LP; }
+")" { yylval.type_node = NewTerminalNode(yytext, "RP"); return RP; }
+"[" { yylval.type_node = NewTerminalNode(yytext, "LB"); return LB; }
+"]" { yylval.type_node = NewTerminalNode(yytext, "RB"); return RB; }
+"{" { yylval.type_node = NewTerminalNode(yytext, "LC"); return LC; }
+"}" { yylval.type_node = NewTerminalNode(yytext, "RC"); return RC; }
 
 "//" { 
     char c = input(); 
@@ -160,4 +161,35 @@ void update()
     yylloc.first_column = yycolumn;
     yylloc.last_column = yycolumn + yyleng - 1;
     yycolumn += yyleng;
+}
+
+struct Node *NewTerminalNode(char *text, const char *type)
+{
+    struct Node *val = (struct Node *)malloc(sizeof(struct Node));
+    val->left = val->right = NULL;
+    val->line = yylineno;
+    val->type = (char *)malloc(sizeof(char) * (strlen(type) + 1));
+    strcpy(val->type, type);
+
+    if(!strcmp(type, "INT"))
+    {
+        val->val_type = 1;
+        (val->val).type_int = atocmmi(text);
+    }
+    else if(!strcmp(type, "FLOAT"))
+    {
+        val->val_type = 2;
+        (val->val).type_float = atof(text);
+    }
+    else
+    {
+        if(!strcmp(type, "ID") || !strcmp(type, "TYPE"))
+            val->val_type = 3;
+        else
+            val->val_type = 4;
+        (val->val).type_string = (char *)malloc(sizeof(char) * (strlen(text) + 1));
+        strcpy((val->val).type_string, text);
+    }
+
+    return val;
 }

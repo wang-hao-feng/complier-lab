@@ -1,11 +1,13 @@
 struct Position
 {
-    float x, y;
+    int x, y;
+    int z[10];
 };
 
 int main()
 {
     struct Position p;
+    p.z[1.5] = 1;
     if (p.n == 3.7)
-        return 0;
+        return 1.5;
 }

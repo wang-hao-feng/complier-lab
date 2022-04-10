@@ -505,11 +505,11 @@ void analyseStmt(Node *stmt)
         {
             if(exp_type->type != 0)
                 PrintErrorMsg(OPERANDS_TYPE_MISMATCH, temp->line, 1, "Type mismatched for if");
-            Node *stmt2 = exp->right->right;
-            analyseStmt(stmt2);
-            if(stmt2->right != NULL)
-                analyseStmt(stmt2->right->right);
         }
+        Node *stmt2 = exp->right->right;
+        analyseStmt(stmt2);
+        if(stmt2->right != NULL)
+            analyseStmt(stmt2->right->right);
     }
     else if(!strcmp(temp->type, "WHILE"))
     {

@@ -74,6 +74,7 @@ void analyseExtDef(Node *extdef)
             DeleteFunc(fun);
             return;
         }
+        InsertSymbolItem(functions, fun->name, NewSymbolItem((void *)fun));
         if(!strcmp(fundec->right->type, "SEMI"))
         {
             fun->def = 0;
@@ -85,7 +86,6 @@ void analyseExtDef(Node *extdef)
             return_type = fun->type;
             analyseCompSt(fundec->right);
         }
-        InsertSymbolItem(functions, fun->name, NewSymbolItem((void *)fun));
     }
 }
 
@@ -270,8 +270,6 @@ Type *analyseExp(Node *exp)
                     PrintErrorMsg(ASSIGNMENT_TYPE_MISMATCH, temp->line, 1, "Type mismatched for assignment.");
                 else if(operand1->name == NULL)
                     PrintErrorMsg(INVALID_LEFT_HAND, temp->line, 1, "The left-hand side of an assignment must be a variable.");
-                else
-                    memcpy(operand1, operand2, sizeof(Type));
             }
             else if(!strcmp(operator->type, "AND"))
                 exp_type = operate(operand1, analyseExp(operator->right), 4, temp->line);
@@ -540,7 +538,7 @@ Field *analyseArgs(Node *args)
 
 Type *operate(Type *operand1, Type *operand2, int operator, int line)
 {
-    if((operator > 3 && (operand1->type != 1 || operand2->type != 1)) || (!SameType(operand1, operand2) || (operand1->type > 1)))
+    if((operator > 3 && (operand1->type != 0 || operand2->type != 0)) || (!SameType(operand1, operand2) || (operand1->type > 1)))
     {
         PrintErrorMsg(OPERANDS_TYPE_MISMATCH, line, 1, "Type mismatched for operands.");
         return NULL;

@@ -3,25 +3,31 @@
     #include <stdlib.h>
     #include <string.h>
     #include <stdarg.h>
-    #include "NodeStruct.c"
+    #include "NodeStruct.h"
+    #include "analyse.h"
     #include "lex.yy.c"
+    #include "error.h"
 
     #define MAX_STACK_SIZE 1024
 
-    struct Node *root;
+    Node *root;
 
-    int lexical_error = 0, syntax_error = 0;
+    int lexical_error = 0;
+    int syntax_error = 0;
+    int semantic_error = 0;
+    IntermediaCodes *codes;
 
     void yyerror(char *msg);
-    struct Node *NewNonTerminalNode(int argc, const char *type, ...);
-    void PrintNode(struct Node *node, int deep);
-    void PrintTree();
+    Node *NewNonTerminalNode(int argc, const char *type, ...);
+    //SymbolTable *variables = NewSymbolTable();
+    //SymbolTable *functions = NewSymbolTable();
+    //TrieTree *structure = NewTrieTree();
 %}
 
 %locations
 
 %union {
-    struct Node * type_node;
+    Node * type_node;
 }
 
 %token <type_node> TYPE STRUCT RETURN IF ELSE WHILE
@@ -77,6 +83,10 @@ ExtDef : Specifier ExtDecList SEMI
         $$ = NewNonTerminalNode(2, "ExtDef", &$1, &$2);
     }
     | Specifier FunDec CompSt
+    {
+        $$ = NewNonTerminalNode(3, "ExtDef", &$1, &$2, &$3);
+    }
+    | Specifier FunDec SEMI        //函数声明
     {
         $$ = NewNonTerminalNode(3, "ExtDef", &$1, &$2, &$3);
     }
@@ -337,7 +347,7 @@ Args : Exp COMMA Args
 
 int main(int argc, char **argv)
 {
-    if(argc <= 1)
+    if(argc < 3)
         return 1;
     FILE *f = fopen(argv[1], "r");
     if(!f)
@@ -348,7 +358,9 @@ int main(int argc, char **argv)
     yyrestart(f);
     yyparse();
     if(!lexical_error && !syntax_error)
-        PrintTree();
+        analyseProgram(root);
+    if(!lexical_error && !syntax_error && !semantic_error)
+        WriteIntermediaCode(codes, argv[2]);
     return 0;
 }
 
@@ -358,10 +370,10 @@ void yyerror(char *msg)
     syntax_error = 1;
 }
 
-struct Node *NewNonTerminalNode(int argc, const char *type, ...)
+Node *NewNonTerminalNode(int argc, const char *type, ...)
 {
-    struct Node *parent;
-    parent = (struct Node *)malloc(sizeof(struct Node));
+    Node *parent;
+    parent = (Node *)malloc(sizeof(Node));
     va_list list;
     va_start(list, type);
     parent->type = (char *)malloc(sizeof(char) * (strlen(type) + 1));
@@ -390,33 +402,16 @@ struct Node *NewNonTerminalNode(int argc, const char *type, ...)
     return parent;
 }
 
-void PrintNode(struct Node *node, int deep)
-{
-    if(node->val_type == 0)
-        return;
-    for(int i = 0; i < deep; i++)
-        printf("  ");
-    if(node->val_type == 1)
-        printf("%s: %u\n", node->type, (node->val).type_int);
-    else if(node->val_type == 2)
-        printf("%s: %lf\n", node->type, (node->val).type_float);
-    else if(node->val_type == 3)
-        printf("%s: %s\n", node->type, (node->val).type_string);
-    else if(node->val_type == 4)
-        printf("%s\n", node->type);
-    else
-        printf("%s (%d)\n", node->type, node->line);
-}
-
+/*
 void PrintTree()
 {
-    struct Node *stack[MAX_STACK_SIZE];
+    Node *stack[MAX_STACK_SIZE];
     stack[0] = root;
     int state[MAX_STACK_SIZE];
     memset(state, 0, sizeof(state));
     state[0] = 6;
     int stack_top = 1;
-    struct Node *now = root;
+    Node *now = root;
     int deep = 0;
 
     PrintNode(root, deep);
@@ -456,3 +451,4 @@ void PrintTree()
         }
     }
 }
+*/

@@ -290,7 +290,7 @@ Exp : Exp ASSIGNOP Exp
     {
         $$ = NewNonTerminalNode(3, "Exp", &$1, &$2, &$3);
     }
-    | LP Exp LP
+    | LP Exp RP
     {
         $$ = NewNonTerminalNode(3, "Exp", &$1, &$2, &$3);
     }
